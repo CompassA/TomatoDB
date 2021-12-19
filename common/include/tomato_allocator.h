@@ -1,8 +1,10 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 13:08:13
- * @LastEditTime: 2021-12-18 20:43:27
+ * @LastEditTime: 2021-12-19 13:28:47
  */
+#ifndef TOMATODB_COMMON_INCLUDE_TOMATODB_ALLOCATOR_H
+#define TOMATODB_COMMON_INCLUDE_TOMATODB_ALLOCATOR_H
 #include <vector>
 #include <atomic>
 
@@ -66,3 +68,6 @@ private:
 };
 
 }
+
+
+#endif

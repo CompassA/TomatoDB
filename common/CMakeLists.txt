@@ -9,11 +9,14 @@ add_library(${PROJECT_NAME} SHARED)
 target_sources(${PROJECT_NAME}
     PRIVATE
         ${SRC_DIR}/tomato_allocator.cc
+
+        ${HEADER_DIR}/tomato_skip_list.h
 )
 
 target_include_directories(${PROJECT_NAME}
     INTERFACE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${HEADER_DIR}
 )
 
 tomato_db_test("test/tomato_allocator_test.cc")
+tomato_db_test("test/tomato_skip_list_test.cc")
