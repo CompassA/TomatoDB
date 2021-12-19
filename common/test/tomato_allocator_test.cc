@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 13:27:47
- * @LastEditTime: 2021-12-18 20:41:14
+ * @LastEditTime: 2021-12-19 22:32:37
  */
 #include <gtest/gtest.h>
 #include <tomato_allocator.h>
@@ -19,22 +19,19 @@ TEST(ALLOCATOR_TEST, allocator_aligned_test) {
     size_t bytes = 0;
 
     std::default_random_engine rnd(time(0));
-    std::uniform_int_distribution<unsigned> u(1, 9000);
+    std::uniform_int_distribution<unsigned> u(1, 200);
 
     for (int i = 0; i < N; i++) {
         size_t s = u(rnd);
         char* r = allocator.allocateAligned(s);
 
         for (size_t b = 0; b < s; b++) {
-            r[b] = i % 256;
+            r[b] = static_cast<char>(i % 256);
         }
 
         bytes += s;
         allocated.push_back(std::make_pair(s, r));
         ASSERT_GE(allocator.getAllocatedSize(), bytes);
-        if (i > N / 10) {
-            ASSERT_LE(allocator.getAllocatedSize(), bytes * 1.10);
-        }
     }
     for (size_t i = 0; i < allocated.size(); i++) {
         size_t num_bytes = allocated[i].first;

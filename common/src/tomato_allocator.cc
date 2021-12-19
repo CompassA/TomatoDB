@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 13:19:56
- * @LastEditTime: 2021-12-18 20:43:22
+ * @LastEditTime: 2021-12-19 22:38:36
  */
 #include "../include/tomato_allocator.h"
 #include <cassert>
@@ -60,9 +60,13 @@ char* Allocator::allocateAligned(size_t bytes) {
         result = pool_begin_ + needToAdd;
         pool_begin_ += totalNeed;
         current_remaining_ -= totalNeed;
-    } else {
+    } else if (bytes > BIG_BYTES_THRESHOLD) {
         // 重新分配new出来的内存一定是对齐的
         result = doAllocate(bytes);
+    } else {
+        result = doAllocate(POOL_BLOCK_BYTES);
+        pool_begin_ = result + bytes;
+        current_remaining_ = POOL_BLOCK_BYTES - bytes;
     }
     
     assert((reinterpret_cast<uintptr_t>(result) & (align - 1)) == 0);
