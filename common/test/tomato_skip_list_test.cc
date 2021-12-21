@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-19 11:28:21
- * @LastEditTime: 2021-12-19 21:53:47
+ * @LastEditTime: 2021-12-21 23:58:29
  */
 #include <gtest/gtest.h>
 #include <tomato_allocator.h>
@@ -26,16 +26,30 @@ struct Comparator {
   }
 };
 
+void printLevel(const SkipList<Key, Comparator>& list) {
+    for (int i = list.getCurrentMaxLevel(); i > 0; --i) {
+        std::vector<Key> levelElements = list.getLevel(i-1);
+        if (levelElements.empty()) {
+            break;
+        }
+        ::printf("level %d, size=%lu: [", i, levelElements.size());
+        for (size_t j = 0; j < levelElements.size(); ++j) {
+            ::printf("%llu%s", levelElements[j], j + 1 != levelElements.size() ? "->" : "]\n");
+        }
+    }
+    ::printf("\n");
+}
+
 // 参考leveldb插入测试
 TEST(SKIP_LIST_TEST, InsertAndLookup) {
-    const int N = 2000;
-    const int R = 5000;
+    const int N = 5000;
+    const int R = 10000;
     std::set<Key> keys;
     Allocator allocator;
     Comparator cmp;
 
     std::default_random_engine generator;
-    std::uniform_int_distribution<Key> distribution(0, 8000000000);
+    std::uniform_int_distribution<Key> distribution(0, R);
     SkipList<Key, Comparator> list(&allocator, cmp);
     for (int i = 0; i < N; i++) {
         Key key = (distribution(generator)) % R;
@@ -43,17 +57,27 @@ TEST(SKIP_LIST_TEST, InsertAndLookup) {
             list.insert(key);
         }
     }
+    for (int i = 0; i < list.getCurrentMaxLevel(); ++i) {
+        std::vector<Key> levelElements = list.getLevel(i);
+        if (levelElements.empty() || levelElements.size() < 2) {
+            break;
+        }
+        for (int i = 1; i < levelElements.size(); ++i) {
+            EXPECT_LT(levelElements[i-1], levelElements[i]);
+        }
+    }
 
-    ::printf("%s", list.showSelf().c_str());
-
-    for (int i = 0; i < R; i++) {
+    for (int i = 0; i <= R; i++) {
         if (list.contains(i)) {
             ASSERT_EQ(keys.count(i), 1);
             list.remove(i);
+            // printLevel(list);
         } else {
             ASSERT_EQ(keys.count(i), 0);
         }
     }
+
+    EXPECT_EQ(list.getCurrentMaxLevel(), 0);
 }
 
 // 测试内存分配

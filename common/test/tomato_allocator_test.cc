@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 13:27:47
- * @LastEditTime: 2021-12-19 22:32:37
+ * @LastEditTime: 2021-12-20 23:05:33
  */
 #include <gtest/gtest.h>
 #include <tomato_allocator.h>
@@ -19,7 +19,7 @@ TEST(ALLOCATOR_TEST, allocator_aligned_test) {
     size_t bytes = 0;
 
     std::default_random_engine rnd(time(0));
-    std::uniform_int_distribution<unsigned> u(1, 200);
+    std::uniform_int_distribution<unsigned> u(1, 6000);
 
     for (int i = 0; i < N; i++) {
         size_t s = u(rnd);

@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 23:51:23
- * @LastEditTime: 2021-12-19 22:47:59
+ * @LastEditTime: 2021-12-21 23:54:04
  */
 #ifndef TOMATODB_COMMON_INCLUDE_TOMATO_SKIP_LIST_H
 #define TOMATODB_COMMON_INCLUDE_TOMATO_SKIP_LIST_H
@@ -10,6 +10,8 @@
 #include <string>
 #include <atomic>
 #include <cassert>
+#include <vector>
+#include <ctime>
 
 #include "tomato_allocator.h"
 
@@ -44,7 +46,7 @@ public:
      * @param value 要查询的值
      * @return true 存在; false 不存在
      */
-    bool contains(const Value& value);
+    bool contains(const Value& value) const;
 
     /**
      * @brief 删除一个值
@@ -54,10 +56,19 @@ public:
     void remove(const Value& value);
 
     /**
-     * @brief 将跳表可视化
+     * @brief 获取当前跳表的最大层数
      * 
+     * @return 层数[1, MAX_LEVEL] 
      */
-    std::string showSelf();
+    int getCurrentMaxLevel() const;
+
+    /**
+     * @brief 获取一层的全部元素
+     * 
+     * @param level 
+     * @return std::vector<Value> 
+     */
+    std::vector<Value> getLevel(int level) const;
 private:
     // 内存分配器
     Allocator* const allocator_;
@@ -102,7 +113,7 @@ private:
      * @param target 目标节点
      * @return 查找结果 
      */
-    Node* searchFirstNotLess(const Value& target);
+    Node* searchFirstNotLess(const Value& target) const;
 
     /**
      * @brief 查询跳表中第一个不小于target元素的节点, 并记录搜索路径
@@ -111,14 +122,7 @@ private:
      * @param path [out] 搜索路径
      * @return 查询结果
      */
-    Node* searchFirstNotLess(const Value& target, Node** path);
-
-    /**
-     * @brief 获取当前跳表的最大层数
-     * 
-     * @return 层数[1, MAX_LEVEL] 
-     */
-    int getCurrentMaxLevel();
+    Node* searchFirstNotLess(const Value& target, std::vector<Node*>* path) const;
 
     /**
      * @brief Set the Current Max Level 
@@ -166,8 +170,8 @@ template<typename Value, typename Comparator>
 SkipList<Value, Comparator>::SkipList(Allocator* allocator, Comparator comparator)
     : allocator_(allocator),
       head_(newNode(0, MAX_LEVEL)),
-      comparator_(comparator),
-      max_level_(1)
+      max_level_(0),
+      comparator_(comparator)
 {
     for (int i = 0; i < MAX_LEVEL; ++i) {
         head_->setNext(i, nullptr);
@@ -177,91 +181,88 @@ SkipList<Value, Comparator>::SkipList(Allocator* allocator, Comparator comparato
 template<typename Value, typename Comparator>
 void SkipList<Value, Comparator>::insert(const Value& value) {
     // 获取搜索路径
-    Node* path[MAX_LEVEL];
-    Node* result = searchFirstNotLess(value, path);
+    std::vector<Node*> path(MAX_LEVEL, nullptr);
+    Node* result = searchFirstNotLess(value, &path);
 
-    // todo 不插入重复元素
-    // assert(result && !comparator_(result->val, value));
+    // 不插入重复元素
+    assert(result == nullptr || comparator_(result->val, value) != 0);
 
     // 获取随机层高
     int newNodeLevel = randomLevel();
 
     // 创建节点
     Node* insertNode = newNode(value, newNodeLevel);
-    int oldMaxLevel = getCurrentMaxLevel();
 
     // 更新链表索引与最大层高
-    for (int i = 0; i < oldMaxLevel; ++i) {
-        insertNode->setNext(i, path[i]->next(i));
-        path[i]->setNext(i, insertNode);
+    for (int i = 0; i < newNodeLevel; ++i) {
+        Node* pathNode = (path[i] == nullptr ? head_ : path[i]);
+        insertNode->setNext(i, pathNode->next(i));
+        pathNode->setNext(i, insertNode);
     }
+
+    // 更新层高
+    int oldMaxLevel = getCurrentMaxLevel();
     if (oldMaxLevel < newNodeLevel) {
         setCurrentMaxLevel(newNodeLevel);
-        for (int i = oldMaxLevel; i < newNodeLevel; ++i) {
-            insertNode->setNext(i, nullptr);
-            head_->setNext(i, insertNode);
-        }
     }
 }
 
 template<typename Value, typename Comparator>
-bool SkipList<Value, Comparator>::contains(const Value& value) {
+bool SkipList<Value, Comparator>::contains(const Value& value) const {
     Node* result = searchFirstNotLess(value);
     return result && (comparator_(result->val, value) == 0);
 }
 
 template<typename Value, typename Comparator>
 void SkipList<Value, Comparator>::remove(const Value& value) {
-    Node* path[MAX_LEVEL];
-    Node* result = searchFirstNotLess(value, path);
+    std::vector<Node*> path(MAX_LEVEL, nullptr);
+    Node* result = searchFirstNotLess(value, &path);
     // 没找到节点，不用删除
     if (result == nullptr || comparator_(result->val, value) != 0) {
         return;
     }
 
-    for (int level = 0; level < MAX_LEVEL; ++level) {
-        Node* next = result->next(level);
-        if (!next) {
-            int nodeLevel = level + 1 - 1;
-            // 如果当前删除的节点的层数等于最大层数，更新最大层数
-            if (nodeLevel == getCurrentMaxLevel()) {
-                int cnt = 0;
+    // 遍历前缀节点，直到前缀节点为空或不是当前节点的前缀
+    for (int level = 0; level <= MAX_LEVEL; ++level) {
+        Node* prev = level == MAX_LEVEL ? nullptr: path[level];
+        if (!prev || !prev->next(level) || comparator_(prev->next(level)->val, value)) {
+            int currentMaxLevel = getCurrentMaxLevel();
+            // path[level]为null时，level即为当前节点层数
+            // 通过便利头节点的方式统计最高层数
+            if (level == currentMaxLevel) {
+                int newMaxLevel = 0;
                 for (int i = 0; i < MAX_LEVEL; ++i) {
                     if (head_->next(i)) {
-                        cnt++;
+                        ++newMaxLevel;
                     } else {
                         break;
                     }
                 }
-                setCurrentMaxLevel(cnt);
+                setCurrentMaxLevel(newMaxLevel);
             }
             break;
-        }
-        path[level]->setNext(level, next);
+        } 
+        // 节点相同, 删除节点, 调整索引
+        else {
+            path[level]->setNext(level, result->next(level));
+        } 
     }
 
 }
 
 template<typename Value, typename Comparator>
-std::string SkipList<Value, Comparator>::showSelf() {
-    std::string result("");
-    for (int i = getCurrentMaxLevel()-1; i >= 0; --i) {
-        Node* cur = head_->next(i);
-        if (cur == nullptr) {
-            continue;
-        }
-        result.append("head -> ");
-        while (cur) {
-            result.append(cur->val + " -> ");
-            cur = cur->next(i);
-        }
-        result.append("nullptr\n");
+std::vector<Value> SkipList<Value, Comparator>::getLevel(int level) const {
+    std::vector<Value> result(0);
+    Node* cur = head_->next(level);
+    while (cur) {
+        result.push_back(cur->val);
+        cur = cur->next(level);
     }
     return result;
 }
 
 template<typename Value, typename Comparator>
-inline int SkipList<Value, Comparator>::getCurrentMaxLevel() {
+inline int SkipList<Value, Comparator>::getCurrentMaxLevel() const {
     return max_level_.load(std::memory_order_relaxed);
 }
 
@@ -272,15 +273,15 @@ inline void SkipList<Value, Comparator>::setCurrentMaxLevel(int level) {
 
 template<typename Value, typename Comparator>
 int SkipList<Value, Comparator>::randomLevel() {
-    std::default_random_engine generator;
+    std::random_device seed;
+    std::minstd_rand generator(seed());
     std::uniform_int_distribution<int> distribution(RANDOM_MIN, RANDOM_MAX);
     int level = 1;
     int target = RANDOM_MAX / 2;
-    while (distribution(generator) <= target && level < MAX_LEVEL) {
+    int randomVal = distribution(generator);
+    while (randomVal <= target && level < MAX_LEVEL) {
         ++level;
-
-        // 加层数的概率逐步下降
-        target = static_cast<int>(target * 0.8);
+        randomVal = distribution(generator);
     }
     return level;
 }
@@ -290,18 +291,22 @@ typename SkipList<Value, Comparator>::Node*
 SkipList<Value, Comparator>::newNode(const Value& value, int level) {
     char* const m = allocator_->allocateAligned(
         sizeof(Node) + sizeof(std::atomic<Node*>) * level);
-    return new (m) Node(value);
+    Node* result = new (m) Node(value);
+    for (int i = 0; i < level; ++i) {
+        result->setNext(i, nullptr);
+    }
+    return result;
 }
 
 template<typename Value, typename Comparator>
 typename SkipList<Value, Comparator>::Node* 
-SkipList<Value, Comparator>::searchFirstNotLess(const Value& target) {
+SkipList<Value, Comparator>::searchFirstNotLess(const Value& target) const {
     return searchFirstNotLess(target, nullptr);
 }
 
 template<typename Value, typename Comparator>
 typename SkipList<Value, Comparator>::Node* 
-SkipList<Value, Comparator>::searchFirstNotLess(const Value& target, Node** path) {
+SkipList<Value, Comparator>::searchFirstNotLess(const Value& target, std::vector<Node*>* path) const {
     Node* cur = head_;
     assert(cur != nullptr);
 
@@ -316,7 +321,7 @@ SkipList<Value, Comparator>::searchFirstNotLess(const Value& target, Node** path
 
         // 记录路径
         if (path) {
-            path[level] = cur;
+            (*path)[level] = cur;
         }
     }
     return cur->next(0);
