@@ -1,8 +1,11 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-22 00:04:56
- * @LastEditTime: 2021-12-22 00:40:20
+ * @LastEditTime: 2021-12-24 20:49:16
  */
+#ifndef TOMATODB_COMMON_INCLUDE_TOMATO_IO_H
+#define TOMATODB_COMMON_INCLUDE_TOMATO_IO_H
+
 #include <string>
 
 namespace tomato {
@@ -94,3 +97,5 @@ public:
 };
 
 }
+
+#endif
