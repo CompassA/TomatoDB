@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-22 22:06:13
- * @LastEditTime: 2021-12-24 22:14:07
+ * @LastEditTime: 2021-12-27 16:02:05
  */
 #include "../include/tomato_codec.h"
 
@@ -46,9 +46,9 @@ std::string encodeFixed32(uint32_t value) {
 uint32_t decodeFixed32(const std::string& value) {
     const uint8_t* seq = reinterpret_cast<const uint8_t*>(value.c_str());
     uint32_t result = 0;
-    int shift = 0;
-    for (int i = 0; i < 4; ++i) {
-        result |= (seq[i] << shift);
+    uint32_t shift = 0;
+    for (size_t i = 0; i < 4; ++i) {
+        result |= (static_cast<uint32_t>(seq[i]) << shift);
         shift += 8;
     }
     return result;

@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 23:51:23
- * @LastEditTime: 2021-12-21 23:54:04
+ * @LastEditTime: 2021-12-27 16:07:29
  */
 #ifndef TOMATODB_COMMON_INCLUDE_TOMATO_SKIP_LIST_H
 #define TOMATODB_COMMON_INCLUDE_TOMATO_SKIP_LIST_H
@@ -188,22 +188,22 @@ void SkipList<Value, Comparator>::insert(const Value& value) {
     assert(result == nullptr || comparator_(result->val, value) != 0);
 
     // 获取随机层高
-    int newNodeLevel = randomLevel();
+    int new_node_level = randomLevel();
 
     // 创建节点
-    Node* insertNode = newNode(value, newNodeLevel);
+    Node* insert_node = newNode(value, new_node_level);
 
     // 更新链表索引与最大层高
-    for (int i = 0; i < newNodeLevel; ++i) {
-        Node* pathNode = (path[i] == nullptr ? head_ : path[i]);
-        insertNode->setNext(i, pathNode->next(i));
-        pathNode->setNext(i, insertNode);
+    for (int i = 0; i < new_node_level; ++i) {
+        Node* path_node = (path[i] == nullptr ? head_ : path[i]);
+        insert_node->setNext(i, path_node->next(i));
+        path_node->setNext(i, insert_node);
     }
 
     // 更新层高
-    int oldMaxLevel = getCurrentMaxLevel();
-    if (oldMaxLevel < newNodeLevel) {
-        setCurrentMaxLevel(newNodeLevel);
+    int old_max_level = getCurrentMaxLevel();
+    if (old_max_level < new_node_level) {
+        setCurrentMaxLevel(new_node_level);
     }
 }
 
@@ -226,19 +226,19 @@ void SkipList<Value, Comparator>::remove(const Value& value) {
     for (int level = 0; level <= MAX_LEVEL; ++level) {
         Node* prev = level == MAX_LEVEL ? nullptr: path[level];
         if (!prev || !prev->next(level) || comparator_(prev->next(level)->val, value)) {
-            int currentMaxLevel = getCurrentMaxLevel();
+            int current_max_level = getCurrentMaxLevel();
             // path[level]为null时，level即为当前节点层数
             // 通过便利头节点的方式统计最高层数
-            if (level == currentMaxLevel) {
-                int newMaxLevel = 0;
+            if (level == current_max_level) {
+                int new_max_level = 0;
                 for (int i = 0; i < MAX_LEVEL; ++i) {
                     if (head_->next(i)) {
-                        ++newMaxLevel;
+                        ++new_max_level;
                     } else {
                         break;
                     }
                 }
-                setCurrentMaxLevel(newMaxLevel);
+                setCurrentMaxLevel(new_max_level);
             }
             break;
         } 
@@ -278,10 +278,10 @@ int SkipList<Value, Comparator>::randomLevel() {
     std::uniform_int_distribution<int> distribution(RANDOM_MIN, RANDOM_MAX);
     int level = 1;
     int target = RANDOM_MAX / 2;
-    int randomVal = distribution(generator);
-    while (randomVal <= target && level < MAX_LEVEL) {
+    int random_val = distribution(generator);
+    while (random_val <= target && level < MAX_LEVEL) {
         ++level;
-        randomVal = distribution(generator);
+        random_val = distribution(generator);
     }
     return level;
 }
@@ -313,10 +313,10 @@ SkipList<Value, Comparator>::searchFirstNotLess(const Value& target, std::vector
     // 从高到低遍历层数
     for (int level = getCurrentMaxLevel()-1; level >= 0; --level) {
         // 找到当前层最后一个小于目标节点的元素
-        Node* curNext = cur->next(level);
-        while (curNext && comparator_(curNext->val, target) < 0) {
-            cur = curNext;
-            curNext = cur->next(level);
+        Node* cur_next = cur->next(level);
+        while (cur_next && comparator_(cur_next->val, target) < 0) {
+            cur = cur_next;
+            cur_next = cur->next(level);
         }
 
         // 记录路径

@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 13:19:56
- * @LastEditTime: 2021-12-19 22:38:36
+ * @LastEditTime: 2021-12-27 16:11:27
  */
 #include "../include/tomato_allocator.h"
 #include <cassert>
@@ -51,15 +51,15 @@ char* Allocator::allocateAligned(size_t bytes) {
     // 计算需要补齐的字节数，使内存块首地址是align的整数倍
     const int align = (sizeof(void*) > 8) ? 8 : sizeof(void*);
     size_t mod = reinterpret_cast<uintptr_t>(pool_begin_) & (align - 1);
-    size_t needToAdd = align - mod;
-    size_t totalNeed = bytes + needToAdd;
+    size_t need_to_add = align - mod;
+    size_t total_need = bytes + need_to_add;
 
     // 若有可分配内存调整可分配水位后直接返回，否则重新分配
     char* result = nullptr;
-    if (totalNeed <= current_remaining_) {
-        result = pool_begin_ + needToAdd;
-        pool_begin_ += totalNeed;
-        current_remaining_ -= totalNeed;
+    if (total_need <= current_remaining_) {
+        result = pool_begin_ + need_to_add;
+        pool_begin_ += total_need;
+        current_remaining_ -= total_need;
     } else if (bytes > BIG_BYTES_THRESHOLD) {
         // 重新分配new出来的内存一定是对齐的
         result = doAllocate(bytes);
