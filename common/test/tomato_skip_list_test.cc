@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-19 11:28:21
- * @LastEditTime: 2021-12-21 23:58:29
+ * @LastEditTime: 2021-12-27 21:09:44
  */
 #include <gtest/gtest.h>
 #include <tomato_allocator.h>
@@ -103,6 +103,30 @@ TEST(SKIP_LIST_TEST, node_size_test) {
     for (int i = 0; i < level; ++i) {
         EXPECT_EQ(reinterpret_cast<uintptr_t>(node->next(i)), reinterpret_cast<uintptr_t>(children[i]));
     }
+}
+
+TEST(SKIP_LIST_TEST, iterator) {
+    Allocator allocator;
+    Comparator cmp;
+    SkipList<Key, Comparator> list(&allocator, cmp);
+
+    std::vector<int> values;
+    for (int i = 0; i < 100000; ++i) {
+        values.push_back(i);
+        list.insert(i);
+    }
+
+    int index = 0;
+    auto it = SkipList<Key, Comparator>::Iterator(&list);
+    for (it.seekToFirst(); it.valid(); it.next()) {
+        EXPECT_EQ(values[index++], it.key());
+    }
+    EXPECT_EQ(index, values.size());
+
+    it = SkipList<Key, Comparator>::Iterator(&list);
+    Key target = values.size()/2;
+    it.seek(target);
+    EXPECT_TRUE(cmp(target,it.key()) == 0);
 }
 
 } // namespace tomato

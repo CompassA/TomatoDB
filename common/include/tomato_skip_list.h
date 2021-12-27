@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 23:51:23
- * @LastEditTime: 2021-12-27 16:07:29
+ * @LastEditTime: 2021-12-27 22:22:05
  */
 #ifndef TOMATODB_COMMON_INCLUDE_TOMATO_SKIP_LIST_H
 #define TOMATODB_COMMON_INCLUDE_TOMATO_SKIP_LIST_H
@@ -27,6 +27,49 @@ template<typename Value, typename Comparator>
 class SkipList {
 public:
     class Node;
+    /**
+     * @brief 跳表迭代器(参考leveldb)
+     * 
+     */
+    class Iterator {
+    public:
+        explicit Iterator(const SkipList* list);
+
+        /**
+         * @brief 将cur_指向跳表头节点
+         * 
+         */
+        void seekToFirst();
+        
+        /**
+         * @brief 当前迭代器是否有值
+         * 
+         * @return true 有值; false 无值
+         */
+        bool valid() const;
+
+        /**
+         * @brief 向后移动
+         * 
+         */
+        void next();
+
+        /**
+         * @brief 查找符合条件的值，设置到cur_上
+         * 
+         * @param value 查找条件
+         */
+        void seek(const Value& value);
+
+        /**
+         * @brief 跳表节点值 
+         * 
+         */
+        const Value& key() const;
+    private:
+        const SkipList* list_;
+        Node* cur_;
+    };
 public:
     SkipList(Allocator* allocator, Comparator comparator);
     
@@ -169,7 +212,7 @@ private:
 template<typename Value, typename Comparator>
 SkipList<Value, Comparator>::SkipList(Allocator* allocator, Comparator comparator)
     : allocator_(allocator),
-      head_(newNode(0, MAX_LEVEL)),
+      head_(newNode(Value(), MAX_LEVEL)),
       max_level_(0),
       comparator_(comparator)
 {
@@ -331,6 +374,41 @@ SkipList<Value, Comparator>::searchFirstNotLess(const Value& target, std::vector
 template<typename Value, typename Comparator>
 SkipList<Value, Comparator>::Node::Node(const Value& value): val(value) {
 }
+
+
+template<typename Value, typename Comparator>
+SkipList<Value, Comparator>::Iterator::Iterator(const SkipList* list)
+    : list_(list),
+      cur_(nullptr) {}
+
+template<typename Value, typename Comparator>
+inline bool SkipList<Value, Comparator>::Iterator::valid() const {
+    return cur_ != nullptr;
+}
+
+template<typename Value, typename Comparator>
+inline void SkipList<Value, Comparator>::Iterator::next() {
+    //assert(valid());
+    cur_ = cur_->next(0);
+}
+
+template<typename Value, typename Comparator>
+inline void SkipList<Value, Comparator>::Iterator::seek(const Value& value) {
+    //assert(valid());
+    cur_ = list_->searchFirstNotLess(value, nullptr);
+}
+
+template<typename Value, typename Comparator>
+inline const Value& SkipList<Value, Comparator>::Iterator::key() const {
+    //assert(valid());
+    return cur_->val;
+}
+
+template<typename Value, typename Comparator>
+inline void SkipList<Value, Comparator>::Iterator::seekToFirst() {
+    cur_ = list_->head_->next(0);
+}
+
 
 
 }

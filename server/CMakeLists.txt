@@ -8,7 +8,7 @@ project(server)
 #         ${CMAKE_CURRENT_SOURCE_DIR}/src
 # )
 
-# target_link_directories(${PROJECT_NAME}
+# target_include_directories(${PROJECT_NAME}
 #     INTERFACE
 #         ${CMAKE_CURRENT_SOURCE_DIR}/include
 # )
