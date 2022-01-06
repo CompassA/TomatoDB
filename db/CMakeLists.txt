@@ -8,6 +8,7 @@ add_library(${PROJECT_NAME} SHARED)
 target_sources(${PROJECT_NAME}
     PRIVATE
         ${SRC_DIR}/tomato_memory_table.cc
+        ${SRC_DIR}/tomato_sstable_builder.cc
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -20,4 +21,5 @@ target_link_libraries(${PROJECT_NAME}
         common
 )
 
-tomato_db_test("test/tomato_memory_table_test.cc")  
+tomato_db_test("test/tomato_memory_table_test.cc") 
+tomato_db_test("test/tomato_sstable_builder_test.cc")  

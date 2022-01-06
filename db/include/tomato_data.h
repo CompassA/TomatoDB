@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-27 22:17:45
- * @LastEditTime: 2021-12-27 22:20:14
+ * @LastEditTime: 2022-01-06 23:51:40
  */
 #ifndef TOMATO_DB_DB_INCLUDE_TOMATO_DATA_H
 #define TOMATO_DB_DB_INCLUDE_TOMATO_DATA_H
@@ -11,6 +11,9 @@
 
 namespace tomato {
 
+struct TableConfig {
+    int block_group_size = 16;
+};
 
 enum ItemType {
     /**
