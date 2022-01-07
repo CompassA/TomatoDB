@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2022-01-05 23:30:54
- * @LastEditTime: 2022-01-06 23:41:32
+ * @LastEditTime: 2022-01-07 23:48:36
  */
 
 #include "../include/tomato_sstable_builder.h"
@@ -50,10 +50,17 @@ void BlockBuilder::add(const std::string&key, const std::string& value) {
 
     last_key_.resize(shared);
     last_key_.append(key.c_str() + shared, unshared);
+
+    ++current_group_size_;
 }
 
 void BlockBuilder::reset() {
 
+}
+
+const std::string& BlockBuilder::getContent() {
+    const std::string& res = contents_;
+    return res;
 }
 
 

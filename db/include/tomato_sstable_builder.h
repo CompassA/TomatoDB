@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2022-01-05 23:14:28
- * @LastEditTime: 2022-01-06 22:54:40
+ * @LastEditTime: 2022-01-07 23:31:12
  */
 #ifndef TOMATO_DB_DB_INCLUDE_TOMATO_SSTABLE_BUILDER_H
 #define TOMATO_DB_DB_INCLUDE_TOMATO_SSTABLE_BUILDER_H
@@ -33,6 +33,13 @@ public:
      * 
      */
     void reset();
+
+    /**
+     * @brief 获取内部对象
+     * 
+     * @return const std::string& 
+     */
+    const std::string& getContent();
 private:
     /**
      * @brief 所有的键值对内容
