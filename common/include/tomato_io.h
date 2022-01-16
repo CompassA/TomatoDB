@@ -1,12 +1,13 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-22 00:04:56
- * @LastEditTime: 2022-01-16 17:01:34
+ * @LastEditTime: 2022-01-16 17:57:11
  */
 #ifndef TOMATODB_COMMON_INCLUDE_TOMATO_IO_H
 #define TOMATODB_COMMON_INCLUDE_TOMATO_IO_H
 
 #include <string>
+#include <memory>
 
 namespace tomato {
 
@@ -149,7 +150,7 @@ public:
      * @param size 要跳过的字节数
      * @return OperatorResult 
      */
-    virtual OperatorResult skip(off_t size) = 0;
+    virtual OperatorResult skip(::off_t size) = 0;
 
     /**
      * @brief 关闭文件
@@ -174,18 +175,79 @@ public:
 };
 
 /**
+ * @brief 随机读写文件
+ * 
+ */
+class RandomAccessFile {
+public:
+    RandomAccessFile() = default;
+    RandomAccessFile(const RandomAccessFile&) = delete;
+    RandomAccessFile& operator=(const RandomAccessFile&) = delete;
+    virtual ~RandomAccessFile() = default;
+
+    /**
+     * @brief 随机读写
+     * 
+     * @param offset 文件读取的起始位置
+     * @param size 要读取的字节数
+     * @param output [out] 将数据读入这个string中
+     * @return OperatorResult
+     */
+    virtual OperatorResult read(uint64_t offset, size_t size, std::string& output) = 0;
+
+    /**
+     * @brief 得到文件名(得到的是构造文件时传入的值)
+     * 
+     * @return std::string 
+     */
+    virtual std::string getFileName() const = 0;
+
+    /**
+     * @brief 得到文件夹名(根据构造函数的传入情况，若构造函数传了个相对路径，则只会返回相对路径)
+     * 
+     * @return std::string 
+     */
+    virtual std::string getDirName() const = 0;
+
+    /**
+     * @brief 是否打开
+     * 
+     * @return true 可操作
+     * @return false 文件无法操作
+     */
+    virtual bool isOpen() const = 0;
+    
+    /**
+     * @brief 关闭文件
+     * 
+     * @return OperatorResult 
+     */
+    virtual OperatorResult close() = 0;
+};
+
+/**
  * @brief 创建顺序写文件
  * 
- * @return AppendOnlyFile* 
+ * @param filename 文件名或全路径名或相对路径名
+ * @return std::shared_ptr<AppendOnlyFile> 
  */
-AppendOnlyFile* createAppendOnlyFile(const std::string&);
+std::shared_ptr<AppendOnlyFile> createAppendOnlyFile(const std::string& filename);
 
 /**
  * @brief 创建顺序读文件
  * 
- * @return SequentialFile* 
+ * @param filename 文件名或全路径名或相对路径名
+ * @return std::shared_ptr<SequentialFile> 
  */
-SequentialFile* createSequentialFile(const std::string&);
+std::shared_ptr<SequentialFile> createSequentialFile(const std::string& filename);
+
+/**
+ * @brief 创建随机读文件
+ * 
+ * @param filename 文件名或全路径名或相对路径名
+ * @return std::shared_ptr<RandomAccessFile> 
+ */
+std::shared_ptr<RandomAccessFile> createRandomAccessFile(const std::string& filename);
 
 }
 

@@ -1,12 +1,14 @@
 /*
  * @Author: Tomato
  * @Date: 2022-01-14 22:25:32
- * @LastEditTime: 2022-01-16 16:47:19
+ * @LastEditTime: 2022-01-16 18:34:02
  */
 
 #include "../include/tomato_io.h"
 
 #include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <utility>
 #include <algorithm>
@@ -23,6 +25,14 @@ std::string findDirName(const std::string& filename) {
         return std::string(".");
     }
     return filename.substr(0, pos);
+}
+
+uint64_t getFileSize(const std::string& filename) {
+    struct ::stat file_stat;
+    if (::stat(filename.c_str(), &file_stat) != 0) {
+        return 0;
+    }
+    return file_stat.st_size;
 }
 
 class PosixAppendOnlyFile final : public AppendOnlyFile {
@@ -162,7 +172,6 @@ private:
     const std::string dirname_;
 };
 
-
 class PosixSequentialFile final : public SequentialFile {
 public:
     PosixSequentialFile(std::string filename)
@@ -193,7 +202,7 @@ public:
         return OperatorResult::success();
     }
 
-    OperatorResult skip(off_t size) override {
+    OperatorResult skip(::off_t size) override {
         if (::lseek(fd_, size, SEEK_CUR) < 0) {
             return OperatorResult(errno, "lseek error, filename: " + filename_);
         }
@@ -225,12 +234,79 @@ private:
     std::string dirname_;
 };
 
-AppendOnlyFile* createAppendOnlyFile(const std::string& filename) {
-    return new PosixAppendOnlyFile(filename);
+class PosixRandomAccessFile final : public RandomAccessFile {
+public:
+    PosixRandomAccessFile(std::string filename)
+        : filename_(std::move(filename)), dirname_(findDirName(filename_)), mmap_base_(nullptr), file_size_(0) {
+        fd_ = ::open(filename_.c_str(), O_RDONLY | 0);
+        if (fd_ < 0) {
+            return;
+        }
+        file_size_ = getFileSize(filename_);
+        void* mmap_base = ::mmap(nullptr, file_size_, PROT_READ, MAP_SHARED, fd_, 0);
+        if (mmap_base == MAP_FAILED) {
+            ::close(fd_);
+            return;
+        }
+        mmap_base_ = static_cast<char*>(mmap_base);
+    }
+
+    ~PosixRandomAccessFile() override {
+        if (isOpen()) {
+            close();
+        }
+    }
+
+    OperatorResult read(uint64_t offset, size_t size, std::string& output) override {
+        if (offset + size > file_size_) {
+            // EINVAL参数错误
+            return OperatorResult(EINVAL, "size over limit");
+        }
+        output.append(mmap_base_ + offset, size);
+        return OperatorResult::success();
+    }
+
+    std::string getFileName() const override {
+        return filename_;
+    }
+
+    std::string getDirName() const override {
+        return dirname_;
+    }
+
+    bool isOpen() const override {
+        return fd_ >= 0 && mmap_base_ != nullptr;
+    }
+    
+    OperatorResult close() override {
+        if (::munmap(mmap_base_, file_size_) < 0) {
+            return OperatorResult(errno, "file munmap error, filename: " + filename_);
+        }
+        if (::close(fd_) < 0) {
+            return OperatorResult(errno, "file close error, filename: " + filename_);
+        }
+        fd_ = -1;
+        mmap_base_ = nullptr;
+        return OperatorResult::success();
+    }
+private:
+    int fd_;
+    std::string filename_;
+    std::string dirname_;
+    char* mmap_base_;
+    uint64_t file_size_;
+};
+
+std::shared_ptr<AppendOnlyFile> createAppendOnlyFile(const std::string& filename) {
+    return std::make_shared<PosixAppendOnlyFile>(filename);
 }
 
-SequentialFile* createSequentialFile(const std::string& filename) {
-    return new PosixSequentialFile(filename);
+std::shared_ptr<SequentialFile> createSequentialFile(const std::string& filename) {
+    return std::make_shared<PosixSequentialFile>(filename);
+}
+
+std::shared_ptr<RandomAccessFile> createRandomAccessFile(const std::string& filename) {
+    return std::make_shared<PosixRandomAccessFile>(filename);
 }
 
 }
