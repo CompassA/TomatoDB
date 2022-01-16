@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-22 00:04:56
- * @LastEditTime: 2022-01-16 17:57:11
+ * @LastEditTime: 2022-01-16 19:09:20
  */
 #ifndef TOMATODB_COMMON_INCLUDE_TOMATO_IO_H
 #define TOMATODB_COMMON_INCLUDE_TOMATO_IO_H
@@ -71,7 +71,7 @@ public:
      * @return true 可操作
      * @return false 文件无法操作
      */
-    virtual bool isOpen() = 0;
+    virtual bool isOpen() const = 0;
 
     /**
      * @brief 将数据追加到文件末尾
@@ -106,14 +106,14 @@ public:
      * 
      * @return std::string 
      */
-    virtual std::string getFileName() = 0;
+    virtual std::string getFileName() const = 0;
 
     /**
      * @brief 得到文件夹名(根据构造函数的传入情况，若构造函数传了个相对路径，则只会返回相对路径)
      * 
      * @return std::string 
      */
-    virtual std::string getDirName() = 0;
+    virtual std::string getDirName() const = 0;
 };
 
 /**
@@ -133,7 +133,7 @@ public:
      * @return true 可操作
      * @return false 文件无法操作
      */
-    virtual bool isOpen() = 0;
+    virtual bool isOpen() const = 0;
     
     /**
      * @brief 从文件上次的offset开始，顺序读取n个字节
@@ -164,14 +164,14 @@ public:
      * 
      * @return std::string 
      */
-    virtual std::string getFileName() = 0;
+    virtual std::string getFileName() const = 0;
 
     /**
      * @brief 得到文件夹名(根据构造函数的传入情况，若构造函数传了个相对路径，则只会返回相对路径)
      * 
      * @return std::string 
      */
-    virtual std::string getDirName() = 0;
+    virtual std::string getDirName() const = 0;
 };
 
 /**
