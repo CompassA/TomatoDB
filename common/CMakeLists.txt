@@ -11,6 +11,7 @@ target_sources(${PROJECT_NAME}
         ${SRC_DIR}/tomato_allocator.cc
         ${SRC_DIR}/tomato_codec.cc
         ${SRC_DIR}/tomato_crc32.cc
+        ${SRC_DIR}/tomato_posix_io.cc
         ${HEADER_DIR}/tomato_skip_list.h
 )
 
@@ -23,3 +24,4 @@ tomato_db_test("test/tomato_allocator_test.cc")
 tomato_db_test("test/tomato_skip_list_test.cc")
 tomato_db_test("test/tomato_codec_test.cc")
 tomato_db_test("test/tomato_crc32_test.cc")
+tomato_db_test("test/tomato_posix_io_test.cc")
