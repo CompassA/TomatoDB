@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2022-01-05 23:30:54
- * @LastEditTime: 2022-01-07 23:48:36
+ * @LastEditTime: 2022-01-08 16:38:18
  */
 
 #include "../include/tomato_sstable_builder.h"
@@ -26,7 +26,7 @@ BlockBuilder::~BlockBuilder() {
 void BlockBuilder::add(const std::string&key, const std::string& value) {    
     // 计算和前一个key相同的前缀字符长度
     uint64_t shared = 0;
-    if (current_group_size_ == group_size_) {
+    if (current_group_size_ >= group_size_) {
         group_size_ = 0;
         restarts_.push_back(contents_.size());
     } else {
@@ -62,6 +62,27 @@ const std::string& BlockBuilder::getContent() {
     const std::string& res = contents_;
     return res;
 }
+
+size_t BlockBuilder::getBlockSize() {
+    return contents_.size();
+}
+
+SSTableBuilder::SSTableBuilder(const TableConfig& tableConfig, AppendOnlyFile* file)
+    : data_block_builder_(tableConfig),
+      index_builder_(tableConfig),
+      file_(file),
+      offset_(0),
+      block_threshold_(tableConfig.block_size_threshold)
+    {}
+
+SSTableBuilder::~SSTableBuilder() {
+}
+
+void SSTableBuilder::add(const std::string&key, const std::string& value) {
+    data_block_builder_.add(key, value);
+    
+}
+
 
 
 }

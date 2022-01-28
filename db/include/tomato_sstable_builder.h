@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2022-01-05 23:14:28
- * @LastEditTime: 2022-01-07 23:31:12
+ * @LastEditTime: 2022-01-08 16:22:44
  */
 #ifndef TOMATO_DB_DB_INCLUDE_TOMATO_SSTABLE_BUILDER_H
 #define TOMATO_DB_DB_INCLUDE_TOMATO_SSTABLE_BUILDER_H
@@ -40,6 +40,8 @@ public:
      * @return const std::string& 
      */
     const std::string& getContent();
+
+    size_t getBlockSize();
 private:
     /**
      * @brief 所有的键值对内容
@@ -74,7 +76,10 @@ private:
 
 class SSTableBuilder {
 public:
-    SSTableBuilder();
+    SSTableBuilder(const TableConfig&, AppendOnlyFile* file);
+    ~SSTableBuilder();
+    SSTableBuilder(const SSTableBuilder&) = delete;
+    SSTableBuilder& operator=(const SSTableBuilder&) = delete;
 
     void add(const std::string&key, const std::string& value);
     
@@ -83,6 +88,7 @@ private:
     BlockBuilder index_builder_;
     AppendOnlyFile* file_;
     uint64_t offset_;
+    uint64_t block_threshold_;
 };
 
 
