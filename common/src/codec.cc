@@ -1,10 +1,9 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-22 22:06:13
- * @LastEditTime: 2021-12-27 16:02:05
+ * @LastEditTime: 2022-11-24 09:06:07
  */
-#include "../include/tomato_codec.h"
-
+#include <tomato_common/codec.h>
 
 namespace tomato {
 namespace codec {

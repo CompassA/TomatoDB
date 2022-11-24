@@ -8,15 +8,16 @@ set(HEADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_library(${PROJECT_NAME} SHARED)
 target_sources(${PROJECT_NAME}
     PRIVATE
-        ${SRC_DIR}/tomato_allocator.cc
-        ${SRC_DIR}/tomato_codec.cc
-        ${SRC_DIR}/tomato_crc32.cc
-        ${SRC_DIR}/tomato_posix_io.cc
-        ${HEADER_DIR}/tomato_skip_list.h
+        ${SRC_DIR}/allocator.cc
+        ${SRC_DIR}/codec.cc
+        ${SRC_DIR}/crc32.cc
+        ${SRC_DIR}/posix_io.cc
+        ${HEADER_DIR}/tomato_common/skip_list.h
 )
+add_library(tomato::common ALIAS common)
 
 target_include_directories(${PROJECT_NAME}
-    INTERFACE
+    PUBLIC 
         ${HEADER_DIR}
 )
 

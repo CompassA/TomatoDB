@@ -1,9 +1,9 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 13:19:56
- * @LastEditTime: 2021-12-27 16:11:27
+ * @LastEditTime: 2022-11-24 08:39:37
  */
-#include "../include/tomato_allocator.h"
+#include <tomato_common/allocator.h>
 #include <cassert>
 
 namespace tomato {

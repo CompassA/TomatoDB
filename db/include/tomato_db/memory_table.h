@@ -1,14 +1,15 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-27 16:19:21
- * @LastEditTime: 2021-12-27 22:19:24
+ * @LastEditTime: 2022-11-24 10:02:14
  */
 #ifndef TOMATO_DB_DB_INCLUDE_TOMATO_MEMORY_TABLE_H
 #define TOMATO_DB_DB_INCLUDE_TOMATO_MEMORY_TABLE_H
 
-#include "tomato_data.h"
-#include <tomato_allocator.h>
-#include <tomato_skip_list.h>
+#include <tomato_db/table_meta.h>
+#include <tomato_common/allocator.h>
+#include <tomato_common/skip_list.h>
+
 #include <string>
 #include <memory>
 
@@ -21,6 +22,7 @@ namespace tomato {
  * 
  */
 class MemoryTable {
+public:
     using Table = SkipList<TableItem, TableItemComparator>;
 public:
     MemoryTable();

@@ -1,10 +1,11 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-27 22:17:45
- * @LastEditTime: 2022-01-28 17:46:55
+ * @LastEditTime: 2022-11-24 10:37:30
  */
 #ifndef TOMATO_DB_DB_INCLUDE_TOMATO_DATA_H
 #define TOMATO_DB_DB_INCLUDE_TOMATO_DATA_H
+
 
 #include <cstdint>
 #include <cstddef>
@@ -88,7 +89,7 @@ struct TableItem {
               value(value_) {}
 
     TableItem(const TableItem&) = default;
-    TableItem& operator=(const TableItem&) = delete;
+    TableItem& operator=(const TableItem&) = default;
 };
 
 /**

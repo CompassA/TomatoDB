@@ -1,14 +1,14 @@
 /*
  * @Author: Tomato
  * @Date: 2022-01-05 23:14:28
- * @LastEditTime: 2022-01-08 16:22:44
+ * @LastEditTime: 2022-11-24 09:25:03
  */
 #ifndef TOMATO_DB_DB_INCLUDE_TOMATO_SSTABLE_BUILDER_H
 #define TOMATO_DB_DB_INCLUDE_TOMATO_SSTABLE_BUILDER_H
 
-#include "tomato_data.h"
+#include <tomato_db/table_meta.h>
+#include <tomato_common/io.h>
 
-#include <tomato_io.h>
 #include <vector>
 
 namespace tomato {

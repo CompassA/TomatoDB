@@ -1,9 +1,9 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-26 16:17:40
- * @LastEditTime: 2021-12-26 21:20:20
+ * @LastEditTime: 2022-11-24 08:43:01
  */
-#include "../include/tomato_crc32.h"
+#include <tomato_common/crc32.h>
 
 namespace tomato {
 

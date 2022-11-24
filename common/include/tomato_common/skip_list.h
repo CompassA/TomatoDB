@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 23:51:23
- * @LastEditTime: 2021-12-27 22:22:05
+ * @LastEditTime: 2022-11-24 11:20:08
  */
 #ifndef TOMATODB_COMMON_INCLUDE_TOMATO_SKIP_LIST_H
 #define TOMATODB_COMMON_INCLUDE_TOMATO_SKIP_LIST_H
@@ -13,7 +13,7 @@
 #include <vector>
 #include <ctime>
 
-#include "tomato_allocator.h"
+#include <tomato_common/allocator.h>
 
 namespace tomato {
 
@@ -205,7 +205,7 @@ public:
 public:
     const Value val;
 private:
-    std::atomic<Node*> next_[];
+    std::atomic<Node*> next_[1];
 };
 
 
@@ -333,7 +333,7 @@ template<typename Value, typename Comparator>
 typename SkipList<Value, Comparator>::Node* 
 SkipList<Value, Comparator>::newNode(const Value& value, int level) {
     char* const m = allocator_->allocateAligned(
-        sizeof(Node) + sizeof(std::atomic<Node*>) * level);
+        sizeof(Node) + sizeof(std::atomic<Node*>) * (level-1));
     Node* result = new (m) Node(value);
     for (int i = 0; i < level; ++i) {
         result->setNext(i, nullptr);
