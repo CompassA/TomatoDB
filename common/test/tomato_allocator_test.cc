@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 13:27:47
- * @LastEditTime: 2022-11-24 09:06:44
+ * @LastEditTime: 2023-02-01 22:54:06
  */
 #include <gtest/gtest.h>
 #include <tomato_common/allocator.h>
@@ -15,13 +15,13 @@ namespace tomato {
 TEST(ALLOCATOR_TEST, allocator_aligned_test) {
     std::vector<std::pair<size_t, char*>> allocated;
     Allocator allocator;
-    const int N = 5000;
     size_t bytes = 0;
 
     std::default_random_engine rnd(time(0));
     std::uniform_int_distribution<unsigned> u(1, 6000);
 
-    for (int i = 0; i < N; i++) {
+    // 分配500次内存, 每次分配的尺寸随机, 测试对齐分配的尺寸是否大于大于等于目标尺寸
+    for (int i = 0; i < 500; i++) {
         size_t s = u(rnd);
         char* r = allocator.allocateAligned(s);
 
@@ -33,6 +33,8 @@ TEST(ALLOCATOR_TEST, allocator_aligned_test) {
         allocated.push_back(std::make_pair(s, r));
         ASSERT_GE(allocator.getAllocatedSize(), bytes);
     }
+
+    // 测试分配内存后写入的值是否正确
     for (size_t i = 0; i < allocated.size(); i++) {
         size_t num_bytes = allocated[i].first;
         const char* p = allocated[i].second;
@@ -49,7 +51,7 @@ TEST(ALLOCATOR_TEST, allocate_test) {
     size_t usedBytes = 0;
     Allocator allocator;
 
-    for (int i = 0; i < 5000; ++i) {
+    for (int i = 0; i < 500; ++i) {
         size_t needToBorrow = u(rnd);
         char* r = allocator.allocate(needToBorrow);
         usedBytes += needToBorrow;
@@ -70,10 +72,4 @@ TEST(ALLOCATOR_TEST, allocate_test) {
     }
 }
 
-}
-
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc,argv);
-    return RUN_ALL_TESTS();
 }

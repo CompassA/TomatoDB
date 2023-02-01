@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 13:08:13
- * @LastEditTime: 2022-11-24 09:05:58
+ * @LastEditTime: 2023-02-01 22:48:33
  */
 #ifndef TOMATODB_COMMON_INCLUDE_TOMATODB_ALLOCATOR_H
 #define TOMATODB_COMMON_INCLUDE_TOMATODB_ALLOCATOR_H
@@ -17,7 +17,7 @@ namespace tomato {
  */
 class Allocator {
 public:
-    Allocator();
+    Allocator(): pool_begin_(nullptr), current_remaining_(0), allocated_size_(0) {}
 
     /**
      * @brief 回收所有分配过的内存，分配器分配过的内存只有在分配器析构时才会被回收
@@ -50,6 +50,7 @@ public:
         return allocated_size_.load(std::memory_order_relaxed);
     }
 
+    Allocator(Allocator&&) = delete;
     Allocator(const Allocator&) = delete;
     Allocator& operator=(const Allocator&) = delete;
 private:
@@ -66,7 +67,20 @@ private:
 
     // 已经分配了多少内存
     std::atomic<size_t> allocated_size_;
+
+    // 内存块尺寸
+    static const int POOL_BLOCK_BYTES;
+
+    // 超过该尺寸的为大对象
+    static const int BIG_BYTES_THRESHOLD;
+
+    // 按几字节对齐
+    static const int ALIGN;
 };
+
+const int Allocator::POOL_BLOCK_BYTES = 4096;
+const int Allocator::BIG_BYTES_THRESHOLD = Allocator::POOL_BLOCK_BYTES / 4;
+const int Allocator::ALIGN = (sizeof(void*) > 8) ? 8 : sizeof(void*);
 
 }
 

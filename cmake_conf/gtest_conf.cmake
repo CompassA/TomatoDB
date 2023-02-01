@@ -6,7 +6,7 @@ function(tomato_db_test test_file)
         PRIVATE
             "${test_file}"
     )
-    target_link_libraries("${test_target_name}" ${PROJECT_NAME} gmock gtest)
+    target_link_libraries("${test_target_name}" ${PROJECT_NAME} gmock gtest gtest_main)
 
     add_test(NAME "${test_target_name}" COMMAND "${test_target_name}")
 endfunction(tomato_db_test)

@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-19 11:28:21
- * @LastEditTime: 2022-11-24 09:07:24
+ * @LastEditTime: 2023-02-01 22:13:10
  */
 #include <gtest/gtest.h>
 #include <tomato_common/allocator.h>
@@ -130,9 +130,3 @@ TEST(SKIP_LIST_TEST, iterator) {
 }
 
 } // namespace tomato
-
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc,argv);
-    return RUN_ALL_TESTS();
-}

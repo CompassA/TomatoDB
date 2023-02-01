@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2022-01-06 23:42:04
- * @LastEditTime: 2022-11-24 09:24:55
+ * @LastEditTime: 2023-02-01 22:14:04
  */
 #include <tomato_common/codec.h>
 #include <tomato_db/table_meta.h>
@@ -47,9 +47,4 @@ TEST(SSTABLE, blockBuilderAdd) {
 
 
 
-}
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc,argv);
-    return RUN_ALL_TESTS();
 }

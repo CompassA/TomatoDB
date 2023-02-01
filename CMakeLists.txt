@@ -3,6 +3,8 @@ project(tomato-db)
 
 include(cmake_conf/common_conf.cmake)
 
+enable_testing()
+
 add_subdirectory(common)
 add_subdirectory(net)
 add_subdirectory(db)

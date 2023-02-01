@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-26 16:17:51
- * @LastEditTime: 2022-11-24 09:07:07
+ * @LastEditTime: 2023-02-01 22:12:55
  */
 #include <tomato_common/crc32.h>
 #include <gtest/gtest.h>
@@ -41,10 +41,4 @@ TEST(CRC, Values) {
     ASSERT_NE(crc32("a", 1), crc32("foo", 3));
 }
 
-}
-
-
-int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
 }

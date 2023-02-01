@@ -1,20 +1,12 @@
 /*
  * @Author: Tomato
  * @Date: 2021-12-18 13:19:56
- * @LastEditTime: 2022-11-24 08:39:37
+ * @LastEditTime: 2023-02-01 23:01:45
  */
 #include <tomato_common/allocator.h>
 #include <cassert>
 
 namespace tomato {
-
-static const int POOL_BLOCK_BYTES = 4096;
-static const int BIG_BYTES_THRESHOLD = POOL_BLOCK_BYTES / 4;
-
-Allocator::Allocator()
-    : pool_begin_(nullptr),
-      current_remaining_(0),
-      allocated_size_(0) {}
 
 Allocator::~Allocator() {
     for (size_t i = 0; i < pool_.size(); ++i) {
@@ -49,9 +41,8 @@ char* Allocator::allocateAligned(size_t bytes) {
     assert(bytes > 0);
 
     // 计算需要补齐的字节数，使内存块首地址是align的整数倍
-    const int align = (sizeof(void*) > 8) ? 8 : sizeof(void*);
-    size_t mod = reinterpret_cast<uintptr_t>(pool_begin_) & (align - 1);
-    size_t need_to_add = align - mod;
+    size_t mod = reinterpret_cast<uintptr_t>(pool_begin_) & (ALIGN - 1);
+    size_t need_to_add = ALIGN - mod;
     size_t total_need = bytes + need_to_add;
 
     // 若有可分配内存调整可分配水位后直接返回，否则重新分配
@@ -69,9 +60,8 @@ char* Allocator::allocateAligned(size_t bytes) {
         current_remaining_ = POOL_BLOCK_BYTES - bytes;
     }
     
-    assert((reinterpret_cast<uintptr_t>(result) & (align - 1)) == 0);
+    assert((reinterpret_cast<uintptr_t>(result) & (ALIGN - 1)) == 0);
     return result;
-
 }
 
 char* Allocator::doAllocate(size_t bytes) {

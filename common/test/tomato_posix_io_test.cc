@@ -1,7 +1,7 @@
 /*
  * @Author: Tomato
  * @Date: 2022-01-15 22:59:21
- * @LastEditTime: 2022-11-24 09:54:34
+ * @LastEditTime: 2023-02-01 22:13:01
  */
 #include <gtest/gtest.h>
 #include <tomato_common/io.h>
@@ -89,11 +89,4 @@ TEST(POSIX_IO, skip_read_test) {
     EXPECT_EQ(result, test_content.substr(skip_size, remain_size));
 }
 
-}
-
-
-
-int main(int argc, char **argv) {
-    testing::InitGoogleTest(&argc,argv);
-    return RUN_ALL_TESTS();
 }
