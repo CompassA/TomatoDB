@@ -22,22 +22,22 @@ const size_t BUFFER_SIZE = 65536;
 std::string findDirName(const std::string& filename) {
     auto pos = filename.rfind('/');
     if (pos == std::string::npos) {
-        return std::string(".");
+        return {"."};
     }
     return filename.substr(0, pos);
 }
 
 uint64_t getFileSize(const std::string& filename) {
-    struct ::stat file_stat;
+    struct ::stat file_stat{};
     if (::stat(filename.c_str(), &file_stat) != 0) {
         return 0;
     }
-    return file_stat.st_size;
+    return static_cast<uint64_t>(file_stat.st_size);
 }
 
 class PosixAppendOnlyFile final : public AppendOnlyFile {
 public:
-    PosixAppendOnlyFile(std::string filename)
+    explicit PosixAppendOnlyFile(std::string filename)
         : buffer_pos_(0), filename_(std::move(filename)), dirname_(findDirName(filename)) {
         fd_ = ::open(filename_.c_str(), O_TRUNC | O_WRONLY | O_CREAT | 0, 0644);
     }
@@ -93,7 +93,7 @@ public:
         }
         // page-cache写回
         if (::fsync(fd_) < 0) {
-            return OperatorResult(errno, "fsync error, filename: " + filename_);
+            return {errno, "fsync error, filename: " + filename_};
         }
         return OperatorResult::success();
     }
@@ -101,7 +101,7 @@ public:
     OperatorResult close() override {
         OperatorResult status = flush();
         if (::close(fd_) < 0) {
-            status = OperatorResult(errno, "close file error, filename: " + filename_);
+            status = {errno, "close file error, filename: " + filename_};
         }
         fd_ = -1;
         return status;
@@ -133,7 +133,7 @@ private:
                 if (errno == EINTR) {
                     continue;
                 } else {
-                    return OperatorResult(errno, "file write error, file name:" + filename_);
+                    return {errno, "file write error, file name:" + filename_};
                 }
             } 
             unwritten_size -= static_cast<size_t>(written_size);
@@ -157,7 +157,7 @@ private:
      * @brief 缓冲区
      * 
      */
-    char buffer_[BUFFER_SIZE];
+    char buffer_[BUFFER_SIZE]{};
 
     /**
      * @brief 文件名
@@ -174,7 +174,7 @@ private:
 
 class PosixSequentialFile final : public SequentialFile {
 public:
-    PosixSequentialFile(std::string filename)
+    explicit PosixSequentialFile(std::string filename)
         : filename_(std::move(filename)), dirname_(findDirName(filename)) {
         fd_ = ::open(filename_.c_str(), O_RDONLY | 0);
     }
@@ -194,7 +194,7 @@ public:
                 if (errno == EINTR) {
                     continue;
                 }
-                return OperatorResult(errno, "read file error, filename: " + filename_);
+                return {errno, "read file error, filename: " + filename_};
             }
             unreaded_size -= static_cast<size_t>(readed_size);
             output.append(buffer, static_cast<size_t>(readed_size));
@@ -204,14 +204,14 @@ public:
 
     OperatorResult skip(::off_t size) override {
         if (::lseek(fd_, size, SEEK_CUR) < 0) {
-            return OperatorResult(errno, "lseek error, filename: " + filename_);
+            return {errno, "lseek error, filename: " + filename_};
         }
         return OperatorResult::success();
     }
 
     OperatorResult close() override {
         if (::close(fd_) < 0) {
-            return OperatorResult(errno, "close file error, filename: " + filename_);
+            return {errno, "close file error, filename: " + filename_};
         }
         fd_ = -1;
         return OperatorResult::success();
@@ -236,7 +236,7 @@ private:
 
 class PosixRandomAccessFile final : public RandomAccessFile {
 public:
-    PosixRandomAccessFile(std::string filename)
+    explicit PosixRandomAccessFile(std::string filename)
         : filename_(std::move(filename)), dirname_(findDirName(filename_)), mmap_base_(nullptr), file_size_(getFileSize(filename_)) {
         fd_ = ::open(filename_.c_str(), O_RDONLY | 0);
         if (fd_ < 0) {
@@ -259,7 +259,7 @@ public:
     OperatorResult read(uint64_t offset, size_t size, std::string& output) override {
         if (offset + size > file_size_) {
             // EINVAL参数错误
-            return OperatorResult(EINVAL, "size over limit");
+            return {EINVAL, "size over limit"};
         }
         output.append(mmap_base_ + offset, size);
         return OperatorResult::success();
@@ -279,10 +279,10 @@ public:
     
     OperatorResult close() override {
         if (::munmap(static_cast<void*>(mmap_base_), file_size_) < 0) {
-            return OperatorResult(errno, "file munmap error, filename: " + filename_);
+            return {errno, "file munmap error, filename: " + filename_};
         }
         if (::close(fd_) < 0) {
-            return OperatorResult(errno, "file close error, filename: " + filename_);
+            return {errno, "file close error, filename: " + filename_};
         }
         fd_ = -1;
         mmap_base_ = nullptr;

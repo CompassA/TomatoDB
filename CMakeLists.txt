@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22.2)
+cmake_minimum_required(VERSION 3.19.2)
 project(tomato-db)
 
 include(cmake_conf/common_conf.cmake)
